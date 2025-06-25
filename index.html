@@ -1,0 +1,2567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spirit Volvo - Used Car Status Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #003057; /* Volvo Blue */
+            --secondary-color: #4a4a4a;
+            --background-color: #f4f4f4;
+            --card-bg-color: #ffffff;
+            --success-color: #4CAF50;
+            --in-progress-color: #FFC107;
+            --font-family: 'Arial', sans-serif;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #app-container {
+            max-width: 1100px;
+            margin: 32px auto 0 auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 6px 32px #0002;
+            padding: 0 0 32px 0;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            background-color: var(--card-bg-color);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        #login-screen h1 {
+            color: var(--primary-color);
+        }
+
+        #login-screen select, #login-screen button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        #login-screen input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        #login-screen button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #login-screen button:hover {
+            background-color: #001f3f;
+        }
+
+        /* Main App */
+        #app {
+            background-color: var(--card-bg-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        header {
+            padding: 32px 32px 0 32px;
+            background: none;
+            border-radius: 18px 18px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 2.2em;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            color: #1976d2;
+            margin: 0;
+        }
+
+        #user-info {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        #user-role-display {
+            font-weight: 600;
+            color: #1976d2;
+            background: #e3f2fd;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-size: 1.05em;
+        }
+
+        #logout-button, #export-button {
+            border: 1px solid #1976d2;
+            background: #fff;
+            color: #1976d2;
+            border-radius: 8px;
+            padding: 7px 18px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        #logout-button:hover, #export-button:hover {
+            background: #1976d2;
+            color: #fff;
+        }
+
+        /* Search Bar */
+        #search-container {
+            margin: 32px 32px 0 32px;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 16px 18px;
+            border-radius: 12px;
+            border: 1.5px solid #1976d2;
+            font-size: 1.1em;
+            background: #f8fafc;
+            box-shadow: 0 1px 6px #1976d211;
+            transition: border 0.2s;
+        }
+
+        #search-input:focus {
+            border: 2px solid #1976d2;
+            outline: none;
+        }
+
+        /* Dashboard View */
+        #dashboard-view {
+            display: flex;
+            gap: 32px;
+            margin: 32px 32px 0 32px;
+        }
+
+        .dashboard-card, .dept-dashboard-card {
+            flex: 1;
+            background: linear-gradient(120deg, #e3f2fd 0%, #f5f7fa 100%);
+            border-radius: 16px;
+            box-shadow: 0 2px 12px #1976d211;
+            padding: 28px 0 18px 0;
+            text-align: center;
+            transition: box-shadow 0.2s, background 0.2s;
+        }
+
+        .dashboard-card:hover, .dept-dashboard-card:hover {
+            box-shadow: 0 6px 24px #1976d233;
+            background: linear-gradient(120deg, #bbdefb 0%, #f5f7fa 100%);
+        }
+
+        .dashboard-card h2, .dept-dashboard-card h2 {
+            margin: 0 0 8px 0;
+            color: #1976d2;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .dashboard-card .count, .dept-dashboard-card .count {
+            font-size: 2.3em;
+            font-weight: 800;
+            color: #222;
+            margin-bottom: 4px;
+        }
+
+        /* Car List */
+        #car-list-container {
+            margin-top: 20px;
+        }
+
+        .car-category {
+            margin-bottom: 30px;
+        }
+
+        .car-category h2 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .car-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+
+        .car-info span {
+            display: block;
+        }
+        .car-info .reg {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .car-info .model {
+            color: #555;
+        }
+
+        .car-status {
+            text-align: right;
+        }
+        .car-status .location, .car-status .department {
+            font-weight: bold;
+        }
+        .car-status .status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9em;
+        }
+        .status-in-progress { background-color: var(--in-progress-color); }
+        .status-completed { background-color: var(--success-color); }
+        .status-ready-for-sale { background-color: var(--primary-color); }
+
+        .edit-button {
+            padding: 8px 12px;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            background: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-left: 15px;
+        }
+
+        /* Modal */
+        #edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-content h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        .modal-content label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+        }
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+        #save-button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        #cancel-button {
+            background-color: #ccc;
+        }
+
+        /* Booking Modal */
+        #booking-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .booking-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+        }
+        .booking-modal-content h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        .booking-modal-content label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        .booking-modal-content input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+        }
+        .booking-modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .booking-modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+        #booking-save-button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        #booking-cancel-button {
+            background-color: #ccc;
+        }
+
+        /* Manager Booking Approval Modal */
+        #approval-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .approval-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+        }
+        .approval-modal-content h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        .approval-modal-content label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        .approval-modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+            min-height: 60px;
+        }
+        .approval-modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .approval-modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+        #approval-save-button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        #approval-cancel-button {
+            background-color: #ccc;
+        }
+
+        /* My Bookings Section */
+        #my-bookings-section {
+            margin: 30px 0 0 0;
+        }
+        #my-bookings-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .booking-item {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .booking-status {
+            font-size: 0.95em;
+            margin-top: 4px;
+        }
+        .booking-rejection {
+            color: #b71c1c;
+            font-size: 0.95em;
+            margin-top: 4px;
+        }
+
+        /* Pending Bookings Section */
+        #pending-bookings-section {
+            margin: 30px 0 0 0;
+        }
+        #pending-bookings-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .pending-booking-item,
+        .sold-awaiting-item {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+            border-radius: 8px;
+          background: #fff;
+          margin-bottom: 8px;
+          padding: 10px 12px;
+          box-shadow: 0 1px 4px #0001;
+        }
+        .pending-booking-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 10px;
+        }
+        .pending-booking-actions button {
+            padding: 6px 14px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--primary-color);
+            background: none;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+        .pending-booking-actions .approve-btn {
+            background: var(--success-color);
+            color: #fff;
+            border: 1px solid var(--success-color);
+        }
+        .pending-booking-actions .reject-btn {
+            background: #b71c1c;
+            color: #fff;
+            border: 1px solid #b71c1c;
+        }
+
+        /* Manager Dashboard Cards */
+        #manager-dashboard-view {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .manager-dashboard-card {
+            flex: 1;
+            background-color: var(--background-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+        .manager-dashboard-card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        .manager-dashboard-card .count {
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+
+        /* Visit Outcome Modal */
+        #outcome-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .outcome-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+        }
+        .outcome-modal-content h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        .outcome-modal-content label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        .outcome-modal-content select, .outcome-modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+        }
+        .outcome-modal-content textarea {
+            min-height: 60px;
+        }
+        .outcome-modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .outcome-modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+        #outcome-save-button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        #outcome-cancel-button {
+            background-color: #ccc;
+        }
+
+        /* Payment Modal */
+        #payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .payment-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 400px;
+        }
+        .payment-modal-content h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        .payment-modal-content label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        .payment-modal-content select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+        }
+        #cash-details-group {
+            display: none;
+            margin-top: 10px;
+        }
+        #cash-amount {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+        }
+        .payment-modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .payment-modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+        #payment-save-button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        #payment-cancel-button {
+            background-color: #ccc;
+        }
+
+        /* Sold Awaiting Assignment Section */
+        #sold-awaiting-section {
+            margin: 30px 0 0 0;
+        }
+        #sold-awaiting-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .sold-awaiting-item {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sold-assign-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .sold-assign-actions select {
+            padding: 6px 10px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+        }
+        .sold-assign-actions button {
+            padding: 6px 14px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--primary-color);
+            background: var(--primary-color);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* Sold/History Section */
+        #sold-history-section {
+            margin: 30px 0 0 0;
+        }
+        #sold-history-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .sold-history-item {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sold-status {
+            font-weight: bold;
+            margin-top: 4px;
+        }
+        .ready-delivery {
+            color: #388e3c;
+            background: #e8f5e9;
+            padding: 2px 8px;
+            border-radius: 8px;
+            margin-left: 8px;
+        }
+
+        /* Department Dashboard Counts */
+        #dept-dashboard-view {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .dept-dashboard-card {
+            flex: 1;
+            background-color: var(--background-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+        .dept-dashboard-card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        .dept-dashboard-card .count {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .overdue {
+            color: #b71c1c;
+            font-weight: bold;
+        }
+        .expected-date {
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        /* Status Dropdown for Department Head */
+        .status-dropdown {
+            margin-left: 10px;
+            padding: 6px 10px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+        }
+        .ready-delivery-count {
+            color: #388e3c;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        #reset-demo-btn {
+            background: #b71c1c;
+            color: #fff;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 10px 20px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        /* Status Badges for Sales History */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.95em;
+            font-weight: 600;
+            margin-left: 6px;
+            margin-right: 6px;
+            color: #fff;
+        }
+        .status-inprep { background: linear-gradient(90deg, #1976d2, #42a5f5); }
+        .status-completed { background: linear-gradient(90deg, #388e3c, #66bb6a); }
+        .status-ready { background: linear-gradient(90deg, #43a047, #b2ff59); color: #222; }
+        .status-awaiting { background: linear-gradient(90deg, #fbc02d, #fffde7); color: #333; }
+        .status-overdue { background: linear-gradient(90deg, #b71c1c, #ff5252); }
+
+        /* --- Visual Polish for Sales Executive Dashboard --- */
+        .section-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px #1976d211;
+            margin-bottom: 32px;
+            padding: 28px 32px;
+        }
+        .section-card h2 {
+            font-size: 1.3em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #1976d2;
+            padding-bottom: 6px;
+            margin-bottom: 18px;
+        }
+        .sold-history-item {
+            margin-bottom: 18px;
+            transition: box-shadow 0.2s, background 0.2s;
+            border-radius: 10px;
+            padding: 16px 18px;
+            background: #fff;
+        }
+        .sold-history-item:hover {
+            box-shadow: 0 4px 16px #1976d233;
+            background: #f1f8ff;
+        }
+        .sold-history-item .status-ready {
+            border: 2px solid #43a047;
+            background: #e8f5e9;
+        }
+        .status-badge {
+            box-shadow: 0 1px 4px #0002;
+            letter-spacing: 0.02em;
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.95em;
+            font-weight: 600;
+            margin-left: 6px;
+            margin-right: 6px;
+            color: #fff;
+        }
+        .status-inprep { background: linear-gradient(90deg, #1976d2, #42a5f5); }
+        .status-completed { background: linear-gradient(90deg, #388e3c, #66bb6a); }
+        .status-ready { background: linear-gradient(90deg, #43a047, #b2ff59); color: #222; }
+        .status-awaiting { background: linear-gradient(90deg, #fbc02d, #fffde7); color: #333; }
+        .status-overdue { background: linear-gradient(90deg, #b71c1c, #ff5252); }
+        @media (max-width: 600px) {
+            .section-card { padding: 10px 4px; }
+            .sold-history-item { font-size: 0.98em; }
+            .status-badge { font-size: 1em; padding: 4px 12px; }
+        }
+
+        /* Accordion styles for collapsible sections */
+        .accordion-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 1.15em;
+          font-weight: 700;
+          color: #1976d2;
+          background: #e3f2fd;
+          border-radius: 10px;
+          padding: 10px 18px;
+          margin-bottom: 10px;
+          cursor: pointer;
+          user-select: none;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          transition: background 0.15s;
+        }
+        .accordion-header:hover {
+          background: #bbdefb;
+        }
+        .accordion-header .header-title {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .section-count-badge {
+          background: #e0e0e0;
+          color: #333;
+          border-radius: 12px;
+          padding: 4px 12px;
+          font-size: 1em;
+          font-weight: 600;
+          margin-left: 12px;
+          margin-right: 8px;
+          min-width: 28px;
+          text-align: center;
+          display: inline-block;
+        }
+        .accordion-arrow {
+          font-size: 1.1em;
+          margin-left: 0;
+          margin-right: 0;
+          transition: transform 0.2s;
+        }
+        .accordion-header.collapsed .accordion-arrow {
+          transform: rotate(-90deg);
+        }
+        .accordion-content {
+          display: none;
+          margin-top: 12px;
+        }
+        .accordion-content.expanded {
+          display: block;
+        }
+        .accordion-table-header {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          font-weight: 700;
+          color: #1976d2;
+          background: #e3f2fd;
+          border-radius: 8px;
+          padding: 8px 0 8px 0;
+          margin-bottom: 8px;
+        }
+        .accordion-table-header span {
+          flex: 1;
+          min-width: 80px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <button id="reset-demo-btn" style="display:none;">Reset Demo Data</button>
+        <!-- LOGIN SCREEN -->
+        <div id="login-screen">
+            <h1>Spirit Volvo</h1>
+            <h2 style="font-size:2em;font-weight:800;color:#1976d2;margin:0 0 8px 0;">Central Workspace</h2>
+            <div style="font-size:1.15em;color:#444;margin-bottom:18px;font-style:italic;">An efficient way to work.</div>
+            <input type="text" id="user-name-input" placeholder="Enter your name">
+            <select id="role-selector">
+                <option value="">-- Select Your Role --</option>
+                <option value="Sales">Sales Executive</option>
+                <option value="Manager">Sales Manager</option>
+                <option value="Department">Department Head</option>
+                <option value="Admin">Super Admin</option>
+        </select>
+            <select id="department-selector" class="hidden">
+                <option value="">-- Select Your Department --</option>
+                <option value="Body Repair">Body Repair</option>
+                <option value="Valeting & Polishing">Valeting & Polishing</option>
+                <option value="Wheel Alignment">Wheel Alignment</option>
+                <option value="Prep Centre">Prep Centre</option>
+                <option value="Service">Service</option>
+                <option value="Dent Repair">Dent Repair</option>
+                <option value="Colour Touch Ups">Colour Touch Ups</option>
+        </select>
+            <button id="login-button">Login</button>
+    </div>
+
+        <!-- MAIN APPLICATION -->
+        <div id="app" class="hidden">
+            <header>
+                <h1>Used Car Dashboard</h1>
+                <div id="user-info">
+                    <span id="user-role-display"></span>
+                    <button id="export-button" class="hidden">Export to CSV</button>
+                    <button id="logout-button">Logout</button>
+                </div>
+            </header>
+
+            <main>
+                <!-- DASHBOARD SUMMARY -->
+                <div id="dashboard-view">
+                    <div class="dashboard-card">
+                        <h2>Available</h2>
+                        <div id="available-count" class="count">0</div>
+                        <div>Vehicles ready for sale</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h2>Not Available</h2>
+                        <div id="not-available-count" class="count">0</div>
+                        <div>Vehicles in preparation</div>
+            </div>
+        </div>
+
+                <!-- SEARCH BAR -->
+                <div id="search-container">
+                    <input type="text" id="search-input" placeholder="Search by Reg, Model, Make, or Color...">
+        </div>
+
+                <!-- CAR LISTS -->
+                <div id="car-list-container">
+                    <!-- Available Cars -->
+                    <div class="car-category">
+                        <h2>Available for Sale</h2>
+                        <div id="available-cars-list"></div>
+                    </div>
+                    <!-- Not Available Cars -->
+                    <div class="car-category">
+                        <h2>In Preparation</h2>
+                        <div id="not-available-cars-list"></div>
+                    </div>
+                </div>
+
+                <!-- MY BOOKINGS (Sales Executive) -->
+                <div id="my-bookings-section" class="hidden">
+                    <h2>My Bookings</h2>
+                    <div id="my-bookings-list"></div>
+                </div>
+                <!-- SOLD/HISTORY (Sales Executive & Manager) -->
+                <div id="sold-history-section" class="hidden">
+                    <div id="ready-delivery-notification" class="ready-delivery-count" style="display:none;"></div>
+                    <h2>📦 My Sales History</h2>
+                    <div id="sold-history-list"></div>
+                </div>
+                <!-- PENDING BOOKINGS (Sales Manager) -->
+                <div id="manager-dashboard-view" class="hidden">
+                    <div class="manager-dashboard-card">
+                        <h2>Pending Approvals</h2>
+                        <div id="pending-approvals-count" class="count">0</div>
+                        <div>Awaiting your action</div>
+                    </div>
+                    <div class="manager-dashboard-card">
+                        <h2>Approved Bookings</h2>
+                        <div id="approved-bookings-count" class="count">0</div>
+                        <div>Recently approved</div>
+                    </div>
+                    <div class="manager-dashboard-card">
+                        <h2>Rejected Bookings</h2>
+                        <div id="rejected-bookings-count" class="count">0</div>
+                        <div>Recently rejected</div>
+                    </div>
+                </div>
+                <div id="pending-bookings-section" class="hidden">
+                    <h2>Pending Bookings</h2>
+                    <div id="pending-bookings-list"></div>
+                </div>
+                <!-- SOLD AWAITING ASSIGNMENT (Manager) -->
+                <div id="sold-awaiting-section" class="hidden">
+                    <h2>Sold – Awaiting Department Assignment</h2>
+                    <div id="sold-awaiting-list"></div>
+                </div>
+                <!-- DEPARTMENT DASHBOARD (Department Head) -->
+                <div id="dept-dashboard-view" class="hidden">
+                    <div class="dept-dashboard-card">
+                        <h2>Cars In</h2>
+                        <div id="dept-cars-in-count" class="count">0</div>
+                    </div>
+                    <div class="dept-dashboard-card">
+                        <h2>In Progress</h2>
+                        <div id="dept-in-progress-count" class="count">0</div>
+                    </div>
+                    <div class="dept-dashboard-card">
+                        <h2>Completed</h2>
+                        <div id="dept-completed-count" class="count">0</div>
+                    </div>
+                    <div class="dept-dashboard-card">
+                        <h2>Overdue</h2>
+                        <div id="dept-overdue-count" class="count">0</div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div id="edit-modal" class="hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">Edit Car Status</h2>
+            <form id="edit-form">
+                <input type="hidden" id="edit-car-id">
+                
+                <label for="edit-status">Status</label>
+                <select id="edit-status">
+                    <option value="Ready to Work">Ready to Work</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+
+                <label for="edit-expected-return">Expected Return Date</label>
+                <input type="date" id="edit-expected-return">
+                
+                <div class="modal-actions">
+                    <button type="button" id="cancel-button">Cancel</button>
+                    <button type="submit" id="save-button">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- BOOKING MODAL -->
+    <div id="booking-modal" class="hidden">
+        <div class="booking-modal-content">
+            <h2>Book Car for Customer Viewing</h2>
+            <form id="booking-form">
+                <input type="hidden" id="booking-car-id">
+                <label for="booking-customer-name">Customer Name</label>
+                <input type="text" id="booking-customer-name" required>
+                <label for="booking-viewing-time">Viewing Date & Time</label>
+                <input type="datetime-local" id="booking-viewing-time" required>
+                <div class="booking-modal-actions">
+                    <button type="button" id="booking-cancel-button">Cancel</button>
+                    <button type="submit" id="booking-save-button">Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- APPROVAL MODAL (Manager Rejection Note) -->
+    <div id="approval-modal" class="hidden">
+        <div class="approval-modal-content">
+            <h2>Reject Booking</h2>
+            <form id="approval-form">
+                <input type="hidden" id="approval-car-id">
+                <label for="approval-reason">Rejection Note</label>
+                <textarea id="approval-reason" required placeholder="Enter reason for rejection..."></textarea>
+                <div class="approval-modal-actions">
+                    <button type="button" id="approval-cancel-button">Cancel</button>
+                    <button type="submit" id="approval-save-button">Reject Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- VISIT OUTCOME MODAL -->
+    <div id="outcome-modal" class="hidden">
+        <div class="outcome-modal-content">
+            <h2>Update Visit Outcome</h2>
+            <form id="outcome-form">
+                <input type="hidden" id="outcome-car-id">
+                <label for="outcome-status">Outcome</label>
+                <select id="outcome-status" required>
+                    <option value="">-- Select Outcome --</option>
+                    <option value="Interested">Interested (will return)</option>
+                    <option value="Needs Follow-up">Needs Follow-up</option>
+                    <option value="Deal Done">Deal Done (Sold)</option>
+                </select>
+                <label for="outcome-note">Note (optional)</label>
+                <textarea id="outcome-note" placeholder="Add a note..."></textarea>
+                <div class="outcome-modal-actions">
+                    <button type="button" id="outcome-cancel-button">Cancel</button>
+                    <button type="submit" id="outcome-save-button">Save Outcome</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <div id="payment-modal" class="hidden">
+        <div class="payment-modal-content">
+            <h2>Record Payment</h2>
+            <form id="payment-form">
+                <input type="hidden" id="payment-car-id">
+                <label for="payment-method">Payment Method</label>
+                <select id="payment-method" required>
+                    <option value="">-- Select Method --</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                </select>
+                <div id="cash-details-group">
+                    <label for="cash-amount">Amount Paid (€)</label>
+                    <input type="number" id="cash-amount" min="0" step="0.01" placeholder="e.g. 5000">
+                </div>
+                <div class="payment-modal-actions">
+                    <button type="button" id="payment-cancel-button">Cancel</button>
+                    <button type="submit" id="payment-save-button">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // #region ########## DATA MANAGEMENT ##########
+        const getCars = () => {
+            const carsJSON = localStorage.getItem('cars');
+            if (carsJSON) {
+                return JSON.parse(carsJSON);
+            }
+            // If no data, populate with sample data
+            const models = [
+                { make: 'Volvo', model: 'XC90' },
+                { make: 'Volvo', model: 'XC60' },
+                { make: 'Volvo', model: 'XC40' },
+                { make: 'Volvo', model: 'S90' },
+                { make: 'Volvo', model: 'S60' },
+                { make: 'Volvo', model: 'V60' },
+                { make: 'Volvo', model: 'V90' }
+            ];
+            const colors = ['Onyx Black', 'Denim Blue', 'Crystal White', 'Fusion Red', 'Thunder Grey', 'Silver Dawn', 'Bright Red', 'Osmium Grey', 'Pine Grey', 'Black Stone', 'Pebble Grey', 'Ice White', 'Moss Green'];
+            const locations = ['Showroom Front Court', 'EIR Compound', 'FEV Compound', 'Toyota Yard', 'Spirit Premium'];
+            const departments = ['Body Repair', 'Valeting & Polishing', 'Wheel Alignment', 'Prep Centre', 'Service', 'Dent Repair', 'Colour Touch Ups'];
+            const statuses = ['Yet to Start', 'In Progress', 'Completed', 'Ready for Delivery'];
+            const sampleCars = [];
+            let regNum = 10000;
+            // 50 available cars
+            for (let i = 0; i < 50; i++) {
+                const m = models[i % models.length];
+                const color = colors[i % colors.length];
+                const loc = locations[i % locations.length];
+                sampleCars.push({
+                    id: `241D${regNum + i}`,
+                    reg: `241-D-${regNum + i}`,
+                    make: m.make,
+                    model: m.model,
+                    color,
+                    available: true,
+                    location: loc,
+                department: null,
+                    status: 'Ready for Sale',
+                expectedReturn: null
+                });
+            }
+            // 10 in preparation (various departments/statuses)
+            for (let i = 0; i < 10; i++) {
+                const m = models[i % models.length];
+                const color = colors[(i + 3) % colors.length];
+                const dept = departments[i % departments.length];
+                const stat = statuses[i % statuses.length];
+                sampleCars.push({
+                    id: `241D${regNum + 50 + i}`,
+                    reg: `241-D-${regNum + 50 + i}`,
+                    make: m.make,
+                    model: m.model,
+                    color,
+                    available: false,
+                    location: 'Internal',
+                    department: dept,
+                    status: stat,
+                    expectedReturn: `2025-07-${(i % 9) + 10}`
+                });
+            }
+            // 5 sold, awaiting department assignment
+            for (let i = 0; i < 5; i++) {
+                const m = models[i % models.length];
+                const color = colors[(i + 5) % colors.length];
+                sampleCars.push({
+                    id: `241D${regNum + 60 + i}`,
+                    reg: `241-D-${regNum + 60 + i}`,
+                    make: m.make,
+                    model: m.model,
+                    color,
+                    available: false,
+                    location: 'Internal',
+                    department: null,
+                    status: 'Sold',
+                    expectedReturn: null,
+                    booking: {
+                        customerName: `Customer${i + 1}`,
+                        paymentMethod: 'Cash',
+                        cashAmount: `${1000 + i * 500}`
+                    }
+                });
+            }
+            // 5 ready for delivery
+            for (let i = 0; i < 5; i++) {
+                const m = models[i % models.length];
+                const color = colors[(i + 7) % colors.length];
+                const dept = departments[i % departments.length];
+                sampleCars.push({
+                    id: `241D${regNum + 65 + i}`,
+                    reg: `241-D-${regNum + 65 + i}`,
+                    make: m.make,
+                    model: m.model,
+                    color,
+                    available: false,
+                    location: 'Internal',
+                    department: dept,
+                    status: 'Ready for Delivery',
+                    expectedReturn: `2025-07-${(i % 9) + 10}`,
+                    booking: {
+                        customerName: `Customer${i + 6}`,
+                        paymentMethod: 'Card',
+                        cashAmount: ''
+                    }
+                });
+            }
+            // Fill up to 70 cars with a mix of in progress/completed
+            for (let i = sampleCars.length; i < 70; i++) {
+                const m = models[i % models.length];
+                const color = colors[(i + 9) % colors.length];
+                const dept = departments[i % departments.length];
+                const stat = statuses[(i + 1) % statuses.length];
+                sampleCars.push({
+                    id: `241D${regNum + i}`,
+                    reg: `241-D-${regNum + i}`,
+                    make: m.make,
+                    model: m.model,
+                    color,
+                    available: false,
+                    location: 'Internal',
+                    department: dept,
+                    status: stat,
+                    expectedReturn: `2025-07-${(i % 9) + 10}`
+                });
+            }
+            localStorage.setItem('cars', JSON.stringify(sampleCars));
+            return sampleCars;
+        };
+
+        const saveCars = (cars) => {
+            localStorage.setItem('cars', JSON.stringify(cars));
+        };
+
+        const getCarById = (id) => {
+            const cars = getCars();
+            return cars.find(car => car.id === id);
+        };
+
+        const updateCar = (updatedCar) => {
+            let cars = getCars();
+            cars = cars.map(car => car.id === updatedCar.id ? updatedCar : car);
+            saveCars(cars);
+        };
+        // #endregion
+
+        // #region ########## UI RENDERING ##########
+        let currentUser = {};
+
+        // Always start from login screen on app load
+        // (No auto-restore session)
+
+        const renderDashboard = () => {
+            const allCars = getCars();
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+            const filteredCars = allCars.filter(car => {
+                if (!searchTerm) return true;
+                return (car.reg.toLowerCase().includes(searchTerm) ||
+                       car.make.toLowerCase().includes(searchTerm) ||
+                       car.model.toLowerCase().includes(searchTerm) ||
+                       car.color.toLowerCase().includes(searchTerm));
+            });
+
+            // Only show cars that are not sold in available/in preparation lists
+            const availableCars = filteredCars.filter(car => {
+                if (car.status === 'Sold') return false;
+                if (car.available && car.status === 'Ready for Sale') return true;
+                if (car.booking && car.booking.status === 'Pending Approval' && car.status === 'Ready for Sale') return true;
+                return false;
+            });
+            const notAvailableCars = filteredCars.filter(car => {
+                if (car.status === 'Sold') return false;
+                if (!car.available && car.department && car.status !== 'Sold') return true;
+                return false;
+            });
+
+            // Hide/show global summary cards
+            const dashboardView = document.getElementById('dashboard-view');
+            if (currentUser.role === 'Department') {
+                dashboardView.style.display = 'none';
+            } else {
+                dashboardView.style.display = '';
+                document.getElementById('available-count').textContent = availableCars.length;
+                document.getElementById('not-available-count').textContent = notAvailableCars.length;
+            }
+
+            // Hide manager/department-only sections for Sales Executive
+            document.getElementById('pending-bookings-section').classList.add('hidden');
+            document.getElementById('manager-dashboard-view').classList.add('hidden');
+            document.getElementById('sold-awaiting-section').classList.add('hidden');
+            document.getElementById('dept-dashboard-view').classList.add('hidden');
+
+            if (currentUser.role === 'Sales') {
+                // Render all sections as accordions
+                const dashboard = document.getElementById('car-list-container');
+                dashboard.innerHTML = `
+                  <div class="section-card">
+                    <div class="accordion-header">🚗 My Bookings <span class="accordion-arrow">&#9654;</span></div>
+                    <div class="accordion-content expanded" id="my-bookings-accordion"></div>
+                  </div>
+                  <div class="section-card">
+                    <div class="accordion-header">🚙 Cars Available to Book <span class="accordion-arrow">&#9654;</span></div>
+                    <div class="accordion-content" id="available-cars-accordion"></div>
+                  </div>
+                  <div class="section-card">
+                    <div class="accordion-header">🛠️ Cars in Preparation <span class="accordion-arrow">&#9654;</span></div>
+                    <div class="accordion-content" id="in-prep-accordion"></div>
+                  </div>
+                  <div class="section-card">
+                    <div class="accordion-header">📦 My Sales History <span class="accordion-arrow">&#9654;</span></div>
+                    <div class="accordion-content" id="sales-history-accordion"></div>
+                  </div>
+                  <div class="section-card">
+                    <div class="accordion-header">🚗 Ready for Delivery <span class="accordion-arrow">&#9654;</span></div>
+                    <div class="accordion-content" id="ready-delivery-accordion"></div>
+                  </div>
+                `;
+                // Render content into each accordion
+                renderMyBookings('my-bookings-accordion');
+                renderCarList('available-cars-accordion', availableCars);
+                renderCarList('in-prep-accordion', notAvailableCars);
+                renderSoldHistory('sales-history-accordion');
+                renderReadyForDelivery('ready-delivery-accordion');
+                // Ensure accordion event listeners are attached after rendering
+                setupAccordion();
+            } else if (currentUser.role === 'Manager') {
+                renderManagerDashboard();
+            } else if (currentUser.role === 'Department') {
+                // Department summary cards
+                const allCars = getCars();
+                const deptCars = allCars.filter(car => car.department === currentUser.department);
+                const inProgress = deptCars.filter(car => car.status === 'In Progress').length;
+                const completed = deptCars.filter(car => car.status === 'Completed').length;
+                const overdue = deptCars.filter(car => car.expectedReturn && car.expectedReturn < new Date().toISOString().slice(0, 10) && car.status !== 'Completed').length;
+                // Due in next 3 days
+                const today = new Date();
+                const threeDays = new Date();
+                threeDays.setDate(today.getDate() + 3);
+                const dueSoon = deptCars.filter(car => {
+                    if (!car.expectedReturn || car.status === 'Completed') return false;
+                    const dueDate = new Date(car.expectedReturn);
+                    return dueDate >= today && dueDate <= threeDays;
+                });
+                const dashboard = document.getElementById('car-list-container');
+                dashboard.innerHTML = `
+                  <div style="display:flex;gap:20px;margin-bottom:20px;">
+                    <div class="dept-dashboard-card"><h2>Cars In</h2><div class="count">${deptCars.length}</div></div>
+                    <div class="dept-dashboard-card"><h2>In Progress</h2><div class="count">${inProgress}</div></div>
+                    <div class="dept-dashboard-card"><h2>Completed</h2><div class="count">${completed}</div></div>
+                    <div class="dept-dashboard-card"><h2>Overdue</h2><div class="count">${overdue}</div></div>
+                    <div class="dept-dashboard-card" style="background:#fffde7;"><h2>Due in 3 Days</h2><div class="count" style="color:#bfa100;">${dueSoon.length}</div></div>
+                  </div>
+                  <details style="margin-bottom:18px;">
+                    <summary style="font-weight:bold;font-size:1.1em;cursor:pointer;">Show cars due in next 3 days (${dueSoon.length})</summary>
+                    <div style="margin-top:10px;">
+                      ${dueSoon.length === 0 ? '<i>No cars due in next 3 days.</i>' :
+                        `<table style='width:100%;border-collapse:collapse;'>
+                          <tr style='background:#f7f7f7;'><th>Reg</th><th>Model</th><th>Employee</th><th>Due Date</th></tr>
+                          ${dueSoon.map(car => `<tr><td>${car.reg}</td><td>${car.model}</td><td>${car.employee || ''}</td><td>${car.expectedReturn}</td></tr>`).join('')}
+                        </table>`}
+                    </div>
+                  </details>
+                `;
+                renderDepartmentDashboard(true); // pass flag to highlight due/overdue
+            } else if (currentUser.role === 'Admin') {
+                renderSoldHistory();
+            }
+
+            // Show reset button for Admin only
+            if (currentUser.role === 'Admin') {
+                document.getElementById('reset-demo-btn').style.display = '';
+            } else {
+                document.getElementById('reset-demo-btn').style.display = 'none';
+            }
+        };
+        
+        const renderCarList = (targetElementId, carList) => {
+            const listElement = document.getElementById(targetElementId);
+            listElement.innerHTML = '';
+
+            if (carList.length === 0) {
+                listElement.innerHTML = '<p>No vehicles in this category.</p>';
+                return;
+            }
+            
+            carList.forEach(car => {
+                // Department heads should only see cars in their department
+                if (currentUser.role === 'Department' && car.department !== currentUser.department) {
+                return;
+            }
+
+                const carItem = document.createElement('div');
+                carItem.className = 'car-item';
+
+                const statusClass = car.status.toLowerCase().replace(/ /g, '-');
+
+                // Show booking info for pending approval in Available list
+                let bookingInfo = '';
+                if (car.booking && car.booking.status === 'Pending Approval') {
+                    bookingInfo = `<div style='margin-top:6px;font-size:0.95em;'><b>Booking (Pending):</b> ${car.booking.customerName} at ${car.booking.viewingTime} (by ${car.booking.bookedBy})</div>`;
+                } else if (car.booking && car.booking.status !== 'Withdrawn') {
+                    bookingInfo = `<div style='margin-top:6px;font-size:0.95em;'><b>Booking:</b> ${car.booking.customerName} at ${car.booking.viewingTime} (${car.booking.status})</div>`;
+                }
+
+                carItem.innerHTML = `
+                    <div class="car-info">
+                        <span class="reg">${car.reg}</span>
+                        <span class="model">${car.make} ${car.model} - ${car.color}</span>
+                    </div>
+                    <div class="car-status">
+                        ${car.available || (car.booking && car.booking.status === 'Pending Approval')
+                            ? `<span class="location">${car.location}</span>`
+                            : `<span class="department">${car.department}</span><span class="status status-${statusClass}">${car.status}</span>`
+                        }
+                        ${bookingInfo}
+                    </div>
+                    <div id="actions-${car.id}"></div>
+                `;
+                listElement.appendChild(carItem);
+
+                // Add edit button based on permissions
+                const actionsContainer = document.getElementById(`actions-${car.id}`);
+                if (
+                    car.available &&
+                    car.status === 'Ready for Sale' &&
+                    currentUser.role === 'Sales' &&
+                    (!car.booking || car.booking.status === 'Withdrawn')
+                ) {
+                    const bookButton = document.createElement('button');
+                    bookButton.className = 'edit-button';
+                    bookButton.textContent = 'Book for Viewing';
+                    bookButton.dataset.carId = car.id;
+                    bookButton.addEventListener('click', () => openBookingModal(car.id));
+                    actionsContainer.appendChild(bookButton);
+                }
+                if (!car.available && (currentUser.role === 'Admin' || (currentUser.role === 'Department' && currentUser.department === car.department))) {
+                     const editButton = document.createElement('button');
+                     editButton.className = 'edit-button';
+                     editButton.textContent = 'Update';
+                     editButton.dataset.carId = car.id;
+                     editButton.addEventListener('click', () => openEditModal(car.id));
+                     actionsContainer.appendChild(editButton);
+                }
+                // Department Head: show 'Ready for Delivery' button for their cars in prep
+                if (
+                    currentUser.role === 'Department' &&
+                    car.department === currentUser.department &&
+                    (car.status === 'Yet to Start' || car.status === 'In Progress' || car.status === 'Completed')
+                ) {
+                    // Status dropdown
+                    const statusSelect = document.createElement('select');
+                    statusSelect.className = 'status-dropdown';
+                    statusSelect.innerHTML = `
+                        <option value="Yet to Start" ${car.status === 'Yet to Start' ? 'selected' : ''}>Yet to Start</option>
+                        <option value="In Progress" ${car.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                        <option value="Completed" ${car.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                    `;
+                    statusSelect.addEventListener('change', (e) => {
+                        const cars = getCars();
+                        const carToUpdate = cars.find(c => c.id === car.id);
+                        if (carToUpdate) {
+                            carToUpdate.status = e.target.value;
+                            saveCars(cars);
+                            renderDashboard();
+                        }
+                    });
+                    actionsContainer.appendChild(statusSelect);
+                    // Mark Ready for Delivery button
+                    if (car.status === 'Completed') {
+                        const readyBtn = document.createElement('button');
+                        readyBtn.className = 'edit-button';
+                        readyBtn.textContent = 'Mark Ready for Delivery';
+                        readyBtn.dataset.carId = car.id;
+                        readyBtn.dataset.action = 'ready-delivery';
+                        actionsContainer.appendChild(readyBtn);
+                    }
+                    // Set/Update expected finish date
+                    const dateInput = document.createElement('input');
+                    dateInput.type = 'date';
+                    dateInput.value = car.expectedReturn || '';
+                    dateInput.className = 'expected-date';
+                    dateInput.style.marginLeft = '10px';
+                    dateInput.addEventListener('change', (e) => {
+                        const cars = getCars();
+                        const carToUpdate = cars.find(c => c.id === car.id);
+                        if (carToUpdate) {
+                            carToUpdate.expectedReturn = e.target.value;
+                            saveCars(cars);
+                            renderDashboard();
+                        }
+                    });
+                    actionsContainer.appendChild(dateInput);
+                }
+                // Show expected finish date for all roles
+                if (car.expectedReturn) {
+                    const expected = document.createElement('div');
+                    expected.className = 'expected-date';
+                    expected.textContent = `Expected Finish: ${car.expectedReturn}`;
+                    if (car.expectedReturn < new Date().toISOString().slice(0, 10) && car.status !== 'Ready for Delivery') {
+                        expected.classList.add('overdue');
+                        expected.textContent += ' (Overdue)';
+                    }
+                    carItem.appendChild(expected);
+                }
+            });
+        };
+        
+        const openEditModal = (carId) => {
+            const car = getCarById(carId);
+            document.getElementById('edit-car-id').value = car.id;
+            document.getElementById('modal-title').textContent = `Update: ${car.reg}`;
+            document.getElementById('edit-status').value = car.status;
+            document.getElementById('edit-expected-return').value = car.expectedReturn || '';
+            document.getElementById('edit-modal').classList.remove('hidden');
+        };
+
+        const closeEditModal = () => {
+            document.getElementById('edit-modal').classList.add('hidden');
+            document.getElementById('edit-form').reset();
+        };
+        // #endregion
+
+        // #region ########## AUTHENTICATION ##########
+        const loginScreen = document.getElementById('login-screen');
+        const appScreen = document.getElementById('app');
+        const roleSelector = document.getElementById('role-selector');
+        const departmentSelector = document.getElementById('department-selector');
+        const userNameInput = document.getElementById('user-name-input');
+
+        roleSelector.addEventListener('change', () => {
+            if (roleSelector.value === 'Department') {
+                departmentSelector.classList.remove('hidden');
+            } else {
+                departmentSelector.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('login-button').addEventListener('click', () => {
+            const name = userNameInput.value.trim();
+            const role = roleSelector.value;
+            const department = departmentSelector.value;
+            if (!name) {
+                alert('Please enter your name.');
+                return;
+            }
+            if (!role) {
+                alert('Please select a role.');
+                return;
+            }
+            if (role === 'Department' && !department) {
+                alert('Please select a department.');
+                return;
+            }
+
+            currentUser = { name, role, department };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            loginScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+
+            document.getElementById('user-role-display').textContent = `Logged in as: ${name} (${role}${role === 'Department' ? ` - ${department}` : ''})`;
+            
+            if (role === 'Admin') {
+                document.getElementById('export-button').classList.remove('hidden');
+            } else {
+                document.getElementById('export-button').classList.add('hidden');
+            }
+            
+            renderDashboard();
+        });
+
+        document.getElementById('logout-button').addEventListener('click', () => {
+            currentUser = {};
+            localStorage.removeItem('currentUser');
+            appScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            roleSelector.value = '';
+            departmentSelector.classList.add('hidden');
+            userNameInput.value = '';
+        });
+        // #endregion
+
+        // #region ########## EVENT LISTENERS ##########
+        document.getElementById('edit-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const carId = document.getElementById('edit-car-id').value;
+            const car = getCarById(carId);
+            
+            const updatedCar = {
+                ...car,
+                status: document.getElementById('edit-status').value,
+                expectedReturn: document.getElementById('edit-expected-return').value
+            };
+            
+            updateCar(updatedCar);
+            closeEditModal();
+            renderDashboard();
+        });
+
+        document.getElementById('cancel-button').addEventListener('click', closeEditModal);
+        
+        document.getElementById('search-input').addEventListener('input', renderDashboard);
+
+        document.getElementById('export-button').addEventListener('click', () => {
+            const cars = getCars();
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Reg No,Make,Model,Color,Is Available,Location/Department,Status,Expected Return\r\n";
+
+            cars.forEach(car => {
+                const row = [
+                    car.reg,
+                    car.make,
+                    car.model,
+                    car.color,
+                    car.available,
+                    car.available ? car.location : car.department,
+                    car.status,
+                    car.expectedReturn || 'N/A'
+                ].join(',');
+                csvContent += row + "\r\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "car_status_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+        // #endregion
+
+        // #region ########## BOOKING MODAL ##########
+        function openBookingModal(carId) {
+            document.getElementById('booking-car-id').value = carId;
+            document.getElementById('booking-customer-name').value = '';
+            document.getElementById('booking-viewing-time').value = '';
+            document.getElementById('booking-modal').classList.remove('hidden');
+        }
+
+        function closeBookingModal() {
+            document.getElementById('booking-modal').classList.add('hidden');
+            document.getElementById('booking-form').reset();
+        }
+
+        // Attach booking modal listeners only once
+        document.getElementById('booking-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const carId = document.getElementById('booking-car-id').value;
+            const customerName = document.getElementById('booking-customer-name').value.trim();
+            const viewingTime = document.getElementById('booking-viewing-time').value;
+            if (!customerName || !viewingTime) {
+                alert('Please enter customer name and viewing time.');
+                return;
+            }
+            const cars = getCars();
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+            car.booking = {
+                customerName,
+                viewingTime,
+                status: 'Pending Approval',
+                bookedBy: currentUser.name,
+                bookedByRole: currentUser.role
+            };
+            car.available = false;
+            car.status = 'Booked (Pending Approval)';
+            saveCars(cars);
+            closeBookingModal();
+            renderDashboard();
+        });
+        document.getElementById('booking-cancel-button').addEventListener('click', closeBookingModal);
+        // #endregion
+
+        // #region ########## MY BOOKINGS (Sales Executive) ##########
+        function renderMyBookings(targetElementId) {
+            const allCars = getCars();
+            const myBookings = allCars.filter(car => car.booking && car.booking.bookedBy === currentUser.name && car.status !== 'Sold' && car.booking.status !== 'Withdrawn');
+            const myBookingsList = document.getElementById(targetElementId);
+            myBookingsList.innerHTML = '';
+            if (myBookings.length === 0) {
+                myBookingsList.innerHTML = '<p>No bookings yet.</p>';
+                return;
+            }
+            myBookings.forEach(car => {
+                const div = document.createElement('div');
+                div.className = 'booking-item';
+                let withdrawBtn = '';
+                let outcomeBtn = '';
+                if (car.booking.status === 'Approved' && car.status !== 'Sold') {
+                    withdrawBtn = `<button class="edit-button withdraw-btn" data-carid="${car.id}">Withdraw</button>`;
+                    outcomeBtn = `<button class="edit-button outcome-btn" data-carid="${car.id}">Update Visit Outcome</button>`;
+                }
+                div.innerHTML = `
+                    <b>${car.reg} - ${car.make} ${car.model}</b>
+                    <span>Customer: ${car.booking.customerName}</span>
+                    <span>Viewing: ${car.booking.viewingTime}</span>
+                    <span class="booking-status">Status: ${car.status === 'Sold' ? 'Sold' : car.booking.status}</span>
+                    ${car.booking.status === 'Rejected' && car.booking.rejectionNote ? `<span class="booking-rejection">Rejection Note: ${car.booking.rejectionNote}</span>` : ''}
+                    ${car.booking.outcome ? `<span class="booking-status"><b>Visit Outcome:</b> ${car.booking.outcome}${car.booking.outcomeNote ? ' - ' + car.booking.outcomeNote : ''}${car.booking.paymentMethod ? ' (Payment: ' + car.booking.paymentMethod : ''}${car.booking.paymentMethod === 'Cash' && car.booking.cashAmount ? ' €' + car.booking.cashAmount : ''}${car.booking.paymentMethod ? ')' : ''}</span>` : ''}
+                    ${withdrawBtn}
+                    ${outcomeBtn}
+                `;
+                myBookingsList.appendChild(div);
+                if (car.booking.status === 'Approved' && car.status !== 'Sold') {
+                    div.querySelector('.withdraw-btn').addEventListener('click', () => handleWithdrawBooking(car.id));
+                    div.querySelector('.outcome-btn').addEventListener('click', () => openOutcomeModal(car.id));
+                }
+            });
+        }
+
+        function handleWithdrawBooking(carId) {
+            if (!confirm('Are you sure you want to withdraw this booking?')) return;
+            const cars = getCars();
+            const car = cars.find(c => c.id === carId);
+            if (!car || !car.booking) return;
+            car.booking.status = 'Withdrawn';
+            car.available = true;
+            car.status = 'Ready for Sale';
+            car.booking.customerName = '';
+            car.booking.viewingTime = '';
+            car.booking.outcome = '';
+            car.booking.outcomeNote = '';
+            car.booking.paymentMethod = '';
+            car.booking.cashAmount = '';
+            saveCars(cars);
+            renderDashboard();
+        }
+        // #endregion
+
+        // #region ########## PENDING BOOKINGS (Manager) ##########
+        function renderManagerDashboard() {
+            const allCars = getCars();
+            const pending = allCars.filter(car => car.booking && car.booking.status === 'Pending Approval');
+            const approved = allCars.filter(car => car.booking && car.booking.status === 'Approved');
+            const rejected = allCars.filter(car => car.booking && car.booking.status === 'Rejected');
+            const soldAwaiting = allCars.filter(car => car.status === 'Sold' && (!car.department || car.department === ''));
+            const returnedFromDept = allCars.filter(car => car.status === 'Returned to Manager');
+            const dashboard = document.getElementById('car-list-container');
+            dashboard.innerHTML = `
+              <div class="section-card">
+                <div class="accordion-header"><span class="header-title">📋 Pending Bookings</span><span class="section-count-badge">${pending.length}</span><span class="accordion-arrow">&#9654;</span></div>
+                <div class="accordion-content expanded" id="pending-bookings-accordion"></div>
+              </div>
+              <div class="section-card">
+                <div class="accordion-header"><span class="header-title">📝 Sold – Awaiting Department Assignment</span><span class="section-count-badge">${soldAwaiting.length}</span><span class="accordion-arrow">&#9654;</span></div>
+                <div class="accordion-content" id="sold-awaiting-accordion"></div>
+              </div>
+              <div class="section-card">
+                <div class="accordion-header"><span class="header-title">🔄 Returned from Department</span><span class="section-count-badge">${returnedFromDept.length}</span><span class="accordion-arrow">&#9654;</span></div>
+                <div class="accordion-content" id="returned-from-dept-accordion"></div>
+              </div>
+              <div class="section-card">
+                <div class="accordion-header"><span class="header-title">✅ Approved Bookings</span><span class="section-count-badge">${approved.length}</span><span class="accordion-arrow">&#9654;</span></div>
+                <div class="accordion-content" id="approved-bookings-accordion"></div>
+              </div>
+              <div class="section-card">
+                <div class="accordion-header"><span class="header-title">❌ Rejected Bookings</span><span class="section-count-badge">${rejected.length}</span><span class="accordion-arrow">&#9654;</span></div>
+                <div class="accordion-content" id="rejected-bookings-accordion"></div>
+              </div>
+            `;
+            renderPendingBookings('pending-bookings-accordion', pending);
+            renderSoldAwaiting('sold-awaiting-accordion', soldAwaiting);
+            renderReturnedFromDept('returned-from-dept-accordion', returnedFromDept);
+            renderApprovedBookings('approved-bookings-accordion', approved);
+            renderRejectedBookings('rejected-bookings-accordion', rejected);
+            setupAccordion();
+        }
+
+        // Render returned from department cars for manager
+        function renderReturnedFromDept(targetId, cars) {
+            const el = document.getElementById(targetId);
+            el.innerHTML = '';
+            el.innerHTML += `<div class="accordion-table-header"><span>Reg</span><span>Model</span><span>Color</span><span>Last Dept</span><span>Status</span><span>Assign/Delivery</span></div>`;
+            if (cars.length === 0) {
+                el.innerHTML += '<p>No cars returned from department.</p>';
+                return;
+            }
+            cars.forEach(car => {
+                ensureCarHistory(car);
+                const lastDept = car.history && car.history.length ? (car.history.filter(h => h.action === 'Assigned to Department').slice(-1)[0]?.department || '') : '';
+                const div = document.createElement('div');
+                div.className = 'returned-dept-item';
+                div.innerHTML = `
+                    <span style="flex:1;min-width:80px;"><b>${car.reg}</b></span>
+                    <span style="flex:1;min-width:80px;">${car.model || ''}</span>
+                    <span style="flex:1;min-width:80px;">${car.color || ''}</span>
+                    <span style="flex:1;min-width:120px;">${lastDept}</span>
+                    <span style="flex:1;min-width:120px;">${car.status}</span>
+                    <span style="flex:2;min-width:200px;" id="returned-actions-${car.id}"></span>
+                `;
+                div.style.display = 'flex';
+                div.style.gap = '8px';
+                div.style.alignItems = 'center';
+                el.appendChild(div);
+                // Add assignment and ready for delivery actions
+                const actionsDiv = div.querySelector(`#returned-actions-${car.id}`);
+                actionsDiv.innerHTML = `
+                    <label for="assign-dept-returned-${car.id}">Assign to:</label>
+                    <select id="assign-dept-returned-${car.id}" class="status-dropdown">
+                        <option value="">-- Select Department --</option>
+                        <option value="Body Repair">Body Repair</option>
+                        <option value="Valeting & Polishing">Valeting & Polishing</option>
+                        <option value="Wheel Alignment">Wheel Alignment</option>
+                        <option value="Prep Centre">Prep Centre</option>
+                        <option value="Service">Service</option>
+                        <option value="Dent Repair">Dent Repair</option>
+                        <option value="Colour Touch Ups">Colour Touch Ups</option>
+                </select>
+                    <button id="assign-btn-returned-${car.id}" data-carid="${car.id}">Assign</button>
+                    <button id="ready-btn-returned-${car.id}" data-carid="${car.id}">Mark Ready for Delivery</button>
+                `;
+                actionsDiv.querySelector(`#assign-btn-returned-${car.id}`).addEventListener('click', () => {
+                    const dept = actionsDiv.querySelector('select').value;
+                    if (!dept) {
+                        alert('Please select a department.');
+                        return;
+                    }
+                    handleAssignDepartment(car.id, dept);
+                });
+                actionsDiv.querySelector(`#ready-btn-returned-${car.id}`).addEventListener('click', () => {
+                    const cars = getCars();
+                    const carObj = cars.find(c => c.id === car.id);
+                    ensureCarHistory(carObj);
+                    carObj.history.push({
+                        action: 'Marked Ready for Delivery',
+                        by: currentUser.name,
+                        byRole: currentUser.role,
+                        date: new Date().toISOString()
+                    });
+                    carObj.status = 'Ready for Delivery';
+                    carObj.department = null;
+                    saveCars(cars);
+                    renderDashboard();
+                });
+            });
+        }
+        // ... existing code ...
+
+        function handleApproveBooking(carId) {
+            const cars = getCars();
+            const car = cars.find(c => c.id === carId);
+            if (!car || !car.booking) return;
+            car.booking.status = 'Approved';
+            car.status = 'Booked (Approved)';
+            saveCars(cars);
+            renderDashboard();
+        }
+
+        // Approval modal for rejection note
+        function openApprovalModal(carId) {
+            document.getElementById('approval-car-id').value = carId;
+            document.getElementById('approval-reason').value = '';
+            document.getElementById('approval-modal').classList.remove('hidden');
+        }
+        function closeApprovalModal() {
+            document.getElementById('approval-modal').classList.add('hidden');
+            document.getElementById('approval-form').reset();
+        }
+        document.getElementById('approval-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const carId = document.getElementById('approval-car-id').value;
+            const reason = document.getElementById('approval-reason').value.trim();
+            if (!reason) {
+                alert('Please enter a rejection note.');
+                return;
+            }
+            const cars = getCars();
+            const car = cars.find(c => c.id === carId);
+            if (!car || !car.booking) return;
+            car.booking.status = 'Rejected';
+            car.booking.rejectionNote = reason;
+            car.available = true;
+            car.status = 'Ready for Sale';
+            saveCars(cars);
+            closeApprovalModal();
+            renderDashboard();
+        });
+        document.getElementById('approval-cancel-button').addEventListener('click', closeApprovalModal);
+        // #endregion
+
+        // #region ########## VISIT OUTCOME MODAL ##########
+        function openOutcomeModal(carId) {
+            document.getElementById('outcome-car-id').value = carId;
+            document.getElementById('outcome-status').value = '';
+            document.getElementById('outcome-note').value = '';
+            document.getElementById('outcome-modal').classList.remove('hidden');
+        }
+        function closeOutcomeModal() {
+            document.getElementById('outcome-modal').classList.add('hidden');
+            document.getElementById('outcome-form').reset();
+        }
+        document.getElementById('outcome-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const carId = document.getElementById('outcome-car-id').value;
+            const outcome = document.getElementById('outcome-status').value;
+            const note = document.getElementById('outcome-note').value.trim();
+            if (!outcome) {
+                alert('Please select an outcome.');
+                return;
+            }
+            if (outcome === 'Deal Done') {
+                // Open payment modal
+                closeOutcomeModal();
+                openPaymentModal(carId, outcome, note);
+                return;
+            }
+            // Save outcome
+            const cars = getCars();
+            const car = cars.find(c => c.id === carId);
+            if (!car || !car.booking) return;
+            car.booking.outcome = outcome;
+            car.booking.outcomeNote = note;
+            saveCars(cars);
+            closeOutcomeModal();
+            renderDashboard();
+        });
+        document.getElementById('outcome-cancel-button').addEventListener('click', closeOutcomeModal);
+        // #endregion
+
+        // #region ########## PAYMENT MODAL ##########
+        function openPaymentModal(carId, outcome, note) {
+            document.getElementById('payment-car-id').value = carId;
+            document.getElementById('payment-method').value = '';
+            document.getElementById('cash-details-group').style.display = 'none';
+            document.getElementById('cash-amount').value = '';
+            // Store outcome/note temporarily
+            document.getElementById('payment-modal').dataset.outcome = outcome;
+            document.getElementById('payment-modal').dataset.note = note;
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+            document.getElementById('payment-form').reset();
+            document.getElementById('payment-modal').dataset.outcome = '';
+            document.getElementById('payment-modal').dataset.note = '';
+            document.getElementById('cash-details-group').style.display = 'none';
+            document.getElementById('cash-amount').value = '';
+        }
+        document.getElementById('payment-method').addEventListener('change', function() {
+            if (this.value === 'Cash') {
+                document.getElementById('cash-details-group').style.display = 'block';
+                document.getElementById('cash-amount').value = '';
+            } else {
+                document.getElementById('cash-details-group').style.display = 'none';
+                document.getElementById('cash-amount').value = '';
+            }
+        });
+        document.getElementById('payment-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const carId = document.getElementById('payment-car-id').value;
+            const paymentMethod = document.getElementById('payment-method').value;
+            const cashAmount = document.getElementById('cash-amount').value.trim();
+            const outcome = document.getElementById('payment-modal').dataset.outcome;
+            const note = document.getElementById('payment-modal').dataset.note;
+            if (!paymentMethod) {
+                alert('Please select a payment method.');
+                return;
+            }
+            if (paymentMethod === 'Cash' && (!cashAmount || isNaN(Number(cashAmount)) || Number(cashAmount) <= 0)) {
+                alert('Please enter a valid euro amount paid.');
+                return;
+            }
+            const cars = getCars();
+            const car = cars.find(c => c.id === carId);
+            if (!car || !car.booking) return;
+            car.booking.outcome = outcome;
+            car.booking.outcomeNote = note;
+            car.booking.paymentMethod = paymentMethod;
+            if (paymentMethod === 'Cash') {
+                car.booking.cashAmount = cashAmount;
+            } else {
+                car.booking.cashAmount = '';
+            }
+            car.status = 'Sold';
+            car.available = false;
+            car.department = null;
+            saveCars(cars);
+            closePaymentModal();
+            renderDashboard();
+        });
+        document.getElementById('payment-cancel-button').addEventListener('click', closePaymentModal);
+        // #endregion
+
+        // Helper to ensure car.history exists
+        function ensureCarHistory(car) {
+            if (!car.history) car.history = [];
+        }
+
+        // Update handleAssignDepartment to log history
+        function handleAssignDepartment(carId, department) {
+            const cars = getCars();
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+            ensureCarHistory(car);
+            let managerNote = '';
+            if (currentUser.role === 'Manager') {
+                managerNote = prompt('Optional: Add a note for the department (e.g., Urgent, Customer waiting, etc.):', car.managerNote || '');
+            }
+            car.history.push({
+                action: 'Assigned to Department',
+                department,
+                by: currentUser.name,
+                byRole: currentUser.role,
+                date: new Date().toISOString(),
+                note: managerNote
+            });
+            car.department = department;
+            car.status = 'Yet to Start';
+            car.expectedReturn = '';
+            if (managerNote !== null) car.managerNote = managerNote;
+            saveCars(cars);
+            renderDashboard();
+        }
+
+        // Update renderSoldHistory for manager re-assignment/ready for delivery and car history display
+        function renderSoldHistory(targetElementId) {
+            const allCars = getCars();
+            let soldCars = [];
+            if (currentUser.role === 'Sales') {
+                soldCars = allCars.filter(car =>
+                    car.booking &&
+                    car.booking.bookedBy === currentUser.name &&
+                    [
+                        'Sold',
+                        'In Preparation',
+                        'Ready for Delivery',
+                        'Yet to Start',
+                        'In Progress',
+                        'Completed'
+                    ].includes(car.status)
+                );
+            } else if (currentUser.role === 'Manager' || currentUser.role === 'Admin') {
+                soldCars = allCars.filter(car => car.status === 'Sold' || car.status === 'In Preparation' || car.status === 'Ready for Delivery' || car.status === 'Yet to Start' || car.status === 'In Progress' || car.status === 'Completed' || car.status === 'Returned to Manager');
+            }
+            const soldHistoryList = document.getElementById(targetElementId);
+            soldHistoryList.innerHTML = '';
+            if (soldCars.length === 0) {
+                soldHistoryList.innerHTML = '<p>No sales history yet.</p>';
+                return;
+            }
+            // Ready for Delivery notification/count
+            const readyCount = soldCars.filter(car => car.status === 'Ready for Delivery').length;
+            const readyDiv = document.getElementById('ready-delivery-notification');
+            if (readyDiv) {
+                if (readyCount > 0) {
+                    readyDiv.style.display = '';
+                    readyDiv.textContent = `🚗 ${readyCount} car(s) ready for delivery!`;
+                } else {
+                    readyDiv.style.display = 'none';
+                }
+            }
+            soldCars.forEach(car => {
+                ensureCarHistory(car);
+                const div = document.createElement('div');
+                div.className = 'sold-history-item';
+                let statusText = '';
+                let badge = '';
+                if (car.status === 'Sold') {
+                    statusText = 'Awaiting Department Assignment';
+                    badge = '<span class="status-badge status-awaiting">Awaiting Assignment</span>';
+                } else if (car.status === 'Yet to Start' || car.status === 'In Progress') {
+                    statusText = `In ${car.department} (${car.status})`;
+                    badge = `<span class="status-badge status-inprep">${car.department} - ${car.status}</span>`;
+                } else if (car.status === 'Completed') {
+                    statusText = `In ${car.department} (Completed)`;
+                    badge = `<span class="status-badge status-completed">${car.department} - Completed</span>`;
+                } else if (car.status === 'In Preparation') {
+                    statusText = `In ${car.department} (In Preparation)`;
+                    badge = `<span class="status-badge status-inprep">${car.department} - In Preparation</span>`;
+                } else if (car.status === 'Ready for Delivery') {
+                    statusText = `<span class='ready-delivery'>Ready for Delivery</span>`;
+                    badge = `<span class="status-badge status-ready">Ready for Delivery</span>`;
+                } else if (car.status === 'Returned to Manager') {
+                    statusText = 'Returned to Manager';
+                    badge = '<span class="status-badge status-awaiting">Returned to Manager</span>';
+                }
+                // Expected finish/delivery date
+                let expected = '';
+                if (car.expectedReturn) {
+                    const overdue = car.expectedReturn < new Date().toISOString().slice(0, 10) && car.status !== 'Ready for Delivery';
+                    expected = `<span class='expected-date${overdue ? ' status-badge status-overdue' : ''}'>Expected Finish: ${car.expectedReturn}${overdue ? ' (Overdue)' : ''}</span>`;
+                }
+                div.innerHTML = `
+                    <b>${car.reg} - ${car.make} ${car.model}</b>
+                    <span>Customer: ${car.booking && car.booking.customerName ? car.booking.customerName : ''}</span>
+                    <span>Payment: ${car.booking && car.booking.paymentMethod ? car.booking.paymentMethod : ''}${car.booking && car.booking.paymentMethod === 'Cash' && car.booking.cashAmount ? ' €' + car.booking.cashAmount : ''}</span>
+                    <span class='sold-status'>${badge} ${statusText}</span>
+                    ${expected}
+                    <div class='sold-assign-actions' id='sold-assign-actions-${car.id}'></div>
+                    <div class='car-history'>${car.history && car.history.length ? '<details><summary>Show History</summary>' + car.history.map(h => `<div><b>${h.date.slice(0,10)}</b>: ${h.action}${h.department ? ' ('+h.department+')' : ''}${h.status ? ' - '+h.status : ''}${h.employee ? ' - '+h.employee : ''}${h.note ? ' - '+h.note : ''} by ${h.by} (${h.byRole})</div>`).join('') + '</details>' : ''}</div>
+                `;
+                soldHistoryList.appendChild(div);
+                // Add department assignment UI for managers if car is Sold and not assigned
+                if (currentUser.role === 'Manager' && car.status === 'Sold' && (!car.department || car.department === '')) {
+                    const actionsDiv = div.querySelector(`#sold-assign-actions-${car.id}`);
+                    actionsDiv.innerHTML = `
+                        <label for="assign-dept-history-${car.id}">Assign to:</label>
+                        <select id="assign-dept-history-${car.id}" class="status-dropdown">
+                            <option value="">-- Select Department --</option>
+                            <option value="Body Repair">Body Repair</option>
+                            <option value="Valeting & Polishing">Valeting & Polishing</option>
+                            <option value="Wheel Alignment">Wheel Alignment</option>
+                            <option value="Prep Centre">Prep Centre</option>
+                            <option value="Service">Service</option>
+                            <option value="Dent Repair">Dent Repair</option>
+                            <option value="Colour Touch Ups">Colour Touch Ups</option>
+                </select>
+                        <button id="assign-btn-history-${car.id}" data-carid="${car.id}">Assign</button>
+                    `;
+                    actionsDiv.querySelector(`#assign-btn-history-${car.id}`).addEventListener('click', () => {
+                        const dept = actionsDiv.querySelector('select').value;
+                        if (!dept) {
+                            alert('Please select a department.');
+                            return;
+                        }
+                        handleAssignDepartment(car.id, dept);
+                    });
+                }
+                // Add manager re-assignment/ready for delivery for Returned to Manager
+                if (currentUser.role === 'Manager' && car.status === 'Returned to Manager') {
+                    const actionsDiv = div.querySelector(`#sold-assign-actions-${car.id}`);
+                    actionsDiv.innerHTML = `
+                        <label for="assign-dept-returned-${car.id}">Assign to:</label>
+                        <select id="assign-dept-returned-${car.id}" class="status-dropdown">
+                            <option value="">-- Select Department --</option>
+                            <option value="Body Repair">Body Repair</option>
+                            <option value="Valeting & Polishing">Valeting & Polishing</option>
+                            <option value="Wheel Alignment">Wheel Alignment</option>
+                            <option value="Prep Centre">Prep Centre</option>
+                            <option value="Service">Service</option>
+                            <option value="Dent Repair">Dent Repair</option>
+                            <option value="Colour Touch Ups">Colour Touch Ups</option>
+                        </select>
+                        <button id="assign-btn-returned-${car.id}" data-carid="${car.id}">Assign</button>
+                        <button id="ready-btn-returned-${car.id}" data-carid="${car.id}">Mark Ready for Delivery</button>
+                    `;
+                    actionsDiv.querySelector(`#assign-btn-returned-${car.id}`).addEventListener('click', () => {
+                        const dept = actionsDiv.querySelector('select').value;
+                        if (!dept) {
+                            alert('Please select a department.');
+                            return;
+                        }
+                        handleAssignDepartment(car.id, dept);
+                    });
+                    actionsDiv.querySelector(`#ready-btn-returned-${car.id}`).addEventListener('click', () => {
+                        const cars = getCars();
+                        const car = cars.find(c => c.id === car.id);
+                        ensureCarHistory(car);
+                        car.history.push({
+                            action: 'Marked Ready for Delivery',
+                            by: currentUser.name,
+                            byRole: currentUser.role,
+                            date: new Date().toISOString()
+                        });
+                        car.status = 'Ready for Delivery';
+                        car.department = null;
+                        saveCars(cars);
+                        renderDashboard();
+                    });
+                }
+            });
+        }
+
+        // Department Dashboard: counts and overdue
+        function renderDepartmentDashboard(highlightDue) {
+            const allCars = getCars();
+            const deptCars = allCars.filter(car => car.department === currentUser.department);
+            const dashboard = document.getElementById('car-list-container');
+            // Don't overwrite summary cards if highlightDue is set
+            if (!highlightDue) {
+                dashboard.innerHTML = `
+                  <div class="section-card">
+                    <div class="accordion-header"><span class="header-title">🚗 Cars In Department</span><span class="section-count-badge">${deptCars.length}</span></div>
+                    <div class="accordion-content expanded" id="dept-cars-accordion"></div>
+                  </div>
+                `;
+            } else {
+                dashboard.innerHTML += `
+                  <div class="section-card">
+                    <div class="accordion-header"><span class="header-title">🚗 Cars In Department</span><span class="section-count-badge">${deptCars.length}</span></div>
+                    <div class="accordion-content expanded" id="dept-cars-accordion"></div>
+                  </div>
+                `;
+            }
+            renderDepartmentCars('dept-cars-accordion', deptCars, highlightDue);
+            setupAccordion();
+        }
+        function renderDepartmentCars(targetId, cars, highlightDue) {
+            const el = document.getElementById(targetId);
+            el.innerHTML = '';
+            el.innerHTML += `<div class="accordion-table-header">
+              <span>Reg</span><span>Model</span><span>Color</span><span>Status</span><span>Employee</span><span>Exp. Date</span><span>Manager Note</span><span>Dept. Note</span><span>Actions</span>
+            </div>`;
+            if (cars.length === 0) {
+                el.innerHTML += '<p>No cars in your department.</p>';
+                return;
+            }
+            const today = new Date();
+            const threeDays = new Date();
+            threeDays.setDate(today.getDate() + 3);
+            cars.forEach(car => {
+                let rowStyle = '';
+                if (highlightDue && car.expectedReturn && car.status !== 'Completed') {
+                    const dueDate = new Date(car.expectedReturn);
+                    if (dueDate < today) {
+                        rowStyle = 'background:#ffebee;'; // red for overdue
+                    } else if (dueDate >= today && dueDate <= threeDays) {
+                        rowStyle = 'background:#fffde7;'; // yellow for due soon
+                    }
+                }
+                const div = document.createElement('div');
+                div.className = 'dept-car-item';
+                div.style = rowStyle + 'display:flex;gap:8px;align-items:center;';
+                div.innerHTML = `
+                  <span style="flex:1;min-width:80px;"><b>${car.reg}</b></span>
+                  <span style="flex:1;min-width:80px;">${car.model || ''}</span>
+                  <span style="flex:1;min-width:80px;">${car.color || ''}</span>
+                  <span style="flex:1;min-width:80px;">
+                    <select class="status-dropdown" data-carid="${car.id}">
+                      <option value="Yet to Start" ${car.status === 'Yet to Start' ? 'selected' : ''}>Yet to Start</option>
+                      <option value="In Progress" ${car.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                      <option value="Completed" ${car.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                    </select>
+                  </span>
+                  <span style="flex:1;min-width:80px;">
+                    <input type="text" class="employee-input" data-carid="${car.id}" value="${car.employee || ''}" placeholder="Employee name">
+                  </span>
+                  <span style="flex:1;min-width:80px;">
+                    <input type="date" class="expected-date-input" data-carid="${car.id}" value="${car.expectedReturn || ''}">
+                  </span>
+                  <span style="flex:1;min-width:120px;">${car.managerNote ? `<span style='color:#1976d2;'>${car.managerNote}</span>` : ''}</span>
+                  <span style="flex:1;min-width:120px;">
+                    <input type="text" class="dept-note-input" data-carid="${car.id}" value="${car.departmentNote || ''}" placeholder="Add note">
+                  </span>
+                  <span style="flex:1;min-width:80px;">
+                    <button class="save-dept-car-btn" data-carid="${car.id}">Save</button>
+                    ${car.status === 'Completed' ? `<button class="return-to-manager-btn" data-carid="${car.id}">Return to Manager</button>` : ''}
+                  </span>
+                `;
+                el.appendChild(div);
+            });
+            // Add event listeners for save, status, employee, date, note
+            el.querySelectorAll('.save-dept-car-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const carId = this.dataset.carid;
+                    const cars = getCars();
+                    const car = cars.find(c => c.id === carId);
+                    if (!car) return;
+                    car.status = el.querySelector(`.status-dropdown[data-carid='${carId}']`).value;
+                    car.employee = el.querySelector(`.employee-input[data-carid='${carId}']`).value;
+                    car.expectedReturn = el.querySelector(`.expected-date-input[data-carid='${carId}']`).value;
+                    car.departmentNote = el.querySelector(`.dept-note-input[data-carid='${carId}']`).value;
+                    saveCars(cars);
+                    renderDashboard();
+                });
+            });
+            // Add event listeners for return to manager
+            el.querySelectorAll('.return-to-manager-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const carId = this.dataset.carid;
+                    const cars = getCars();
+                    const car = cars.find(c => c.id === carId);
+                    if (!car) return;
+                    if (!car.history) car.history = [];
+                    car.history.push({
+                        action: 'Returned to Manager',
+                        department: car.department,
+                        by: currentUser.name,
+                        byRole: currentUser.role,
+                        date: new Date().toISOString(),
+                        status: car.status
+                    });
+                    car.department = null;
+                    car.status = 'Returned to Manager';
+                    car.expectedReturn = '';
+                    saveCars(cars);
+                    renderDashboard();
+                });
+            });
+        }
+
+        // Reset Demo Data button logic
+        document.getElementById('reset-demo-btn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset all demo data? This will erase all changes and restore the sample data.')) {
+                localStorage.clear();
+                location.reload();
+            }
+        });
+
+        // Add event delegation for 'Mark Ready for Delivery' button
+        document.addEventListener('click', function (e) {
+            if (
+                e.target &&
+                e.target.classList.contains('edit-button') &&
+                e.target.dataset.carId &&
+                e.target.dataset.action === 'ready-delivery'
+            ) {
+                const carId = e.target.dataset.carId;
+                const cars = getCars();
+                const car = cars.find(c => c.id === carId);
+                if (!car) return;
+                car.status = 'Ready for Delivery';
+                saveCars(cars);
+                renderDashboard();
+            }
+        });
+
+        // Add this after DOMContentLoaded:
+        function setupAccordion() {
+          const headers = document.querySelectorAll('.accordion-header');
+          console.log('Accordion headers found:', headers.length);
+          headers.forEach(header => {
+            header.onclick = function() {
+              const content = this.nextElementSibling;
+              const isExpanded = content.classList.contains('expanded');
+              if (isExpanded) {
+                content.classList.remove('expanded');
+                this.classList.add('collapsed');
+              } else {
+                content.classList.add('expanded');
+                this.classList.remove('collapsed');
+              }
+            };
+          });
+        }
+        document.addEventListener('DOMContentLoaded', setupAccordion);
+
+        // Auto-expand relevant accordion sections on search
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.trim().toLowerCase();
+            // After dashboard is rendered, expand/collapse sections based on results
+            setTimeout(() => {
+                document.querySelectorAll('.accordion-content').forEach(section => {
+                    // If section has visible content (not just 'No ... in this category.' or 'No sales history yet.')
+                    const hasResult = Array.from(section.children).some(child =>
+                        child.tagName !== 'P' && child.textContent.trim() !== ''
+                    );
+                    const header = section.previousElementSibling;
+                    if (searchTerm && hasResult) {
+                        section.classList.add('expanded');
+                        header.classList.remove('collapsed');
+                    } else if (searchTerm && !hasResult) {
+                        section.classList.remove('expanded');
+                        header.classList.add('collapsed');
+                    } else if (!searchTerm) {
+                        // Default: only My Bookings expanded
+                        if (section.id === 'my-bookings-accordion') {
+                            section.classList.add('expanded');
+                            header.classList.remove('collapsed');
+                        } else {
+                            section.classList.remove('expanded');
+                            header.classList.add('collapsed');
+                        }
+                    }
+                });
+            }, 100); // Wait for dashboard to re-render
+        });
+
+        function renderPendingBookings(targetId, bookings) {
+            const el = document.getElementById(targetId);
+            el.innerHTML = '';
+            el.innerHTML += `<div class="accordion-table-header"><span>Reg</span><span>Customer</span><span>Viewing</span><span>Sales Exec</span><span>Status</span><span>Actions</span></div>`;
+            if (bookings.length === 0) {
+                el.innerHTML += '<p>No pending bookings.</p>';
+                return;
+            }
+            bookings.forEach(car => {
+                const div = document.createElement('div');
+                div.className = 'pending-booking-item';
+                div.innerHTML = `
+                    <span style="flex:1;min-width:80px;"><b>${car.reg}</b></span>
+                    <span style="flex:1;min-width:80px;">${car.booking.customerName}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking.viewingTime}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking.bookedBy}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking.status}</span>
+                    <span style="flex:1;min-width:80px;"><button class="approve-btn" data-carid="${car.id}">Approve</button> <button class="reject-btn" data-carid="${car.id}">Reject</button></span>
+                `;
+                div.style.display = 'flex';
+                div.style.gap = '8px';
+                div.style.alignItems = 'center';
+                el.appendChild(div);
+            });
+            el.querySelectorAll('.approve-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => handleApproveBooking(e.target.dataset.carid));
+            });
+            el.querySelectorAll('.reject-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => openApprovalModal(e.target.dataset.carid));
+            });
+        }
+        function renderSoldAwaiting(targetId, cars) {
+            const el = document.getElementById(targetId);
+            el.innerHTML = '';
+            el.innerHTML += `<div class="accordion-table-header"><span>Reg</span><span>Color</span><span>Location</span><span>Payment</span><span>Assign</span></div>`;
+            if (cars.length === 0) {
+                el.innerHTML += '<p>No cars awaiting department assignment.</p>';
+                return;
+            }
+            cars.forEach(car => {
+                const div = document.createElement('div');
+                div.className = 'sold-awaiting-item';
+                div.innerHTML = `
+                    <span style="flex:1;min-width:80px;"><b>${car.reg}</b></span>
+                    <span style="flex:1;min-width:80px;">${car.color || ''}</span>
+                    <span style="flex:1;min-width:80px;">${car.location || ''}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking && car.booking.paymentMethod ? car.booking.paymentMethod : 'N/A'}${car.booking && car.booking.paymentMethod === 'Cash' && car.booking.cashAmount ? ' (€' + car.booking.cashAmount + ')' : ''}</span>
+                    <span style="flex:1;min-width:80px;">
+                        <select id="assign-dept-${car.id}" class="status-dropdown">
+                            <option value="">-- Select --</option>
+                            <option value="Body Repair">Body Repair</option>
+                            <option value="Valeting & Polishing">Valeting & Polishing</option>
+                            <option value="Wheel Alignment">Wheel Alignment</option>
+                            <option value="Prep Centre">Prep Centre</option>
+                            <option value="Service">Service</option>
+                            <option value="Dent Repair">Dent Repair</option>
+                            <option value="Colour Touch Ups">Colour Touch Ups</option>
+                        </select>
+                        <button data-carid="${car.id}">Assign</button>
+                    </span>
+                `;
+                div.style.display = 'flex';
+                div.style.gap = '8px';
+                div.style.alignItems = 'center';
+                el.appendChild(div);
+                div.querySelector('button').addEventListener('click', () => {
+                    const dept = div.querySelector('select').value;
+                    if (!dept) {
+                        alert('Please select a department.');
+                        return;
+                    }
+                    handleAssignDepartment(car.id, dept);
+                });
+            });
+        }
+        function renderApprovedBookings(targetId, bookings) {
+            const el = document.getElementById(targetId);
+            el.innerHTML = '';
+            el.innerHTML += `<div class="accordion-table-header"><span>Reg</span><span>Customer</span><span>Viewing</span><span>Sales Exec</span><span>Status</span></div>`;
+            if (bookings.length === 0) {
+                el.innerHTML += '<p>No approved bookings.</p>';
+                return;
+            }
+            bookings.forEach(car => {
+                const div = document.createElement('div');
+                div.className = 'approved-booking-item';
+                div.innerHTML = `
+                    <span style="flex:1;min-width:80px;"><b>${car.reg}</b></span>
+                    <span style="flex:1;min-width:80px;">${car.booking.customerName}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking.viewingTime}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking.bookedBy}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking.status}</span>
+                `;
+                div.style.display = 'flex';
+                div.style.gap = '8px';
+                div.style.alignItems = 'center';
+                el.appendChild(div);
+            });
+        }
+        function renderRejectedBookings(targetId, bookings) {
+            const el = document.getElementById(targetId);
+            el.innerHTML = '';
+            el.innerHTML += `<div class="accordion-table-header"><span>Reg</span><span>Customer</span><span>Viewing</span><span>Sales Exec</span><span>Status</span></div>`;
+            if (bookings.length === 0) {
+                el.innerHTML += '<p>No rejected bookings.</p>';
+                return;
+            }
+            bookings.forEach(car => {
+                const div = document.createElement('div');
+                div.className = 'rejected-booking-item';
+                div.innerHTML = `
+                    <span style="flex:1;min-width:80px;"><b>${car.reg}</b></span>
+                    <span style="flex:1;min-width:80px;">${car.booking.customerName}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking.viewingTime}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking.bookedBy}</span>
+                    <span style="flex:1;min-width:80px;">${car.booking.status}</span>
+                `;
+                div.style.display = 'flex';
+                div.style.gap = '8px';
+                div.style.alignItems = 'center';
+                el.appendChild(div);
+            });
+        }
+        // ... existing code ...
+
+        // 5. Sales Executive: Ready for Delivery tab
+        function renderReadyForDelivery(targetElementId) {
+            const allCars = getCars();
+            const readyCars = allCars.filter(car => car.booking && car.booking.bookedBy === currentUser.name && car.status === 'Ready for Delivery');
+            const readyList = document.getElementById(targetElementId);
+            readyList.innerHTML = '';
+            if (readyCars.length === 0) {
+                readyList.innerHTML = '<p>No cars ready for delivery.</p>';
+                return;
+            }
+            readyCars.forEach(car => {
+                readyList.innerHTML += `
+                    <div class="ready-delivery-item">
+                        <b>${car.reg} - ${car.make} ${car.model}</b><br>
+                        <span>Customer: ${car.booking.customerName}</span><br>
+                        <span>Phone: ${car.booking.customerPhone || 'N/A'}</span><br>
+                        <span>Payment: ${car.booking.paymentMethod}${car.booking.paymentMethod === 'Cash' && car.booking.cashAmount ? ' €' + car.booking.cashAmount : ''}</span>
+                    </div>
+                `;
+            });
+        }
+        });
+    </script>
+</body>
+</html>
