@@ -1381,6 +1381,21 @@
                 // Ensure accordion event listeners are attached after rendering
                 setupAccordion();
             } else if (currentUser.role === 'Manager') {
+                const allCars = getCars();
+                const pending = allCars.filter(car => car.booking && car.booking.status === 'Pending Approval');
+                const soldAwaiting = allCars.filter(car => car.status === 'Sold' && (!car.department || car.department === ''));
+                const returnedFromDept = allCars.filter(car => car.status === 'Returned to Manager');
+                const approved = allCars.filter(car => car.booking && car.booking.status === 'Approved');
+                // Quick stats cards
+                const dashboard = document.getElementById('car-list-container');
+                dashboard.innerHTML = `
+                  <div style='display:flex;gap:24px;margin-bottom:24px;'>
+                    <div class='dept-dashboard-card' style='min-width:180px;'><h2 style='font-size:1.1em;'>Pending Approvals</h2><div class='count' style='color:#1976d2;'>${pending.length}</div></div>
+                    <div class='dept-dashboard-card' style='min-width:180px;'><h2 style='font-size:1.1em;'>Sold Awaiting Assignment</h2><div class='count' style='color:#bfa100;'>${soldAwaiting.length}</div></div>
+                    <div class='dept-dashboard-card' style='min-width:180px;'><h2 style='font-size:1.1em;'>Returned from Department</h2><div class='count' style='color:#388e3c;'>${returnedFromDept.length}</div></div>
+                    <div class='dept-dashboard-card' style='min-width:180px;'><h2 style='font-size:1.1em;'>Approved Bookings</h2><div class='count' style='color:#1976d2;'>${approved.length}</div></div>
+                  </div>
+                `;
                 renderManagerDashboard();
             } else if (currentUser.role === 'Department') {
                 // Department summary cards
@@ -1420,6 +1435,53 @@
                 `;
                 renderDepartmentDashboard(true); // pass flag to highlight due/overdue
             } else if (currentUser.role === 'Admin') {
+                // Super Admin global overview
+                const allCars = getCars();
+                // Department summary cards
+                const departments = ['Body Repair', 'Valeting & Polishing', 'Wheel Alignment', 'Prep Centre', 'Service', 'Dent Repair', 'Colour Touch Ups'];
+                let deptCards = '';
+                departments.forEach(dept => {
+                    const deptCars = allCars.filter(car => car.department === dept);
+                    const inProgress = deptCars.filter(car => car.status === 'In Progress').length;
+                    const completed = deptCars.filter(car => car.status === 'Completed').length;
+                    const overdue = deptCars.filter(car => car.expectedReturn && car.expectedReturn < new Date().toISOString().slice(0, 10) && car.status !== 'Completed').length;
+                    deptCards += `<div class='dept-dashboard-card' style='min-width:180px;margin-bottom:10px;'>
+                        <h2 style='font-size:1.1em;'>${dept}</h2>
+                        <div style='font-size:1.1em;'>In: <b>${deptCars.length}</b></div>
+                        <div style='font-size:1em;color:#1976d2;'>In Progress: ${inProgress}</div>
+                        <div style='font-size:1em;color:#388e3c;'>Completed: ${completed}</div>
+                        <div style='font-size:1em;color:#b71c1c;'>Overdue: ${overdue}</div>
+                    </div>`;
+                });
+                // Ready for Delivery summary
+                const readyForDelivery = allCars.filter(car => car.status === 'Ready for Delivery').length;
+                // Sold this week/month
+                const now = new Date();
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay());
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const soldThisWeek = allCars.filter(car => car.status === 'Sold' && car.booking && car.booking.soldDate && new Date(car.booking.soldDate) >= startOfWeek).length;
+                const soldThisMonth = allCars.filter(car => car.status === 'Sold' && car.booking && car.booking.soldDate && new Date(car.booking.soldDate) >= startOfMonth).length;
+                // Fallback: if no soldDate, count all cars with status 'Sold' for demo
+                const soldFallback = allCars.filter(car => car.status === 'Sold').length;
+                const dashboard = document.getElementById('car-list-container');
+                dashboard.innerHTML = `
+                  <div style='display:flex;flex-wrap:wrap;gap:18px 24px;margin-bottom:24px;'>
+                    ${deptCards}
+                    <div class='dept-dashboard-card' style='min-width:180px;background:#e8f5e9;'>
+                      <h2 style='font-size:1.1em;'>Ready for Delivery</h2>
+                      <div class='count' style='color:#388e3c;'>${readyForDelivery}</div>
+                    </div>
+                    <div class='dept-dashboard-card' style='min-width:180px;background:#e3f2fd;'>
+                      <h2 style='font-size:1.1em;'>Sold This Week</h2>
+                      <div class='count' style='color:#1976d2;'>${soldThisWeek || soldFallback}</div>
+                    </div>
+                    <div class='dept-dashboard-card' style='min-width:180px;background:#e3f2fd;'>
+                      <h2 style='font-size:1.1em;'>Sold This Month</h2>
+                      <div class='count' style='color:#1976d2;'>${soldThisMonth || soldFallback}</div>
+                    </div>
+                  </div>
+                `;
                 renderSoldHistory();
             }
 
