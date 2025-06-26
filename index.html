@@ -945,12 +945,15 @@
         <!-- MAIN APPLICATION -->
         <div id="app" class="hidden">
             <header>
-                <h1>Used Car Dashboard</h1>
+            <div>
+                    <h1>Used Car Dashboard</h1>
+                    <p id="welcome-message" style="margin-top: 4px; font-size: 1.2em; color: #555;"></p>
+            </div>
                 <div id="user-info">
                     <span id="user-role-display"></span>
                     <button id="export-button" class="hidden">Export to CSV</button>
                     <button id="logout-button">Logout</button>
-                </div>
+        </div>
             </header>
 
             <main>
@@ -1677,7 +1680,26 @@
             loginScreen.classList.add('hidden');
             appScreen.classList.remove('hidden');
 
+            // Set dashboard title based on role
+            let dashboardTitle = 'Used Car Dashboard'; // Default
+            switch(role) {
+                case 'Sales':
+                    dashboardTitle = 'Sales one Dashboard';
+                    break;
+                case 'Manager':
+                    dashboardTitle = 'Lead overview Dashboard';
+                    break;
+                case 'Admin':
+                    dashboardTitle = 'Partner Dashboard';
+                    break;
+                case 'Department':
+                    dashboardTitle = `${department} Department Dashboard`;
+                    break;
+            }
+            document.querySelector('#app h1').textContent = dashboardTitle;
+
             document.getElementById('user-role-display').textContent = `Logged in as: ${name} (${role}${role === 'Department' ? ` - ${department}` : ''})`;
+            document.getElementById('welcome-message').textContent = `Welcome, ${name}!`;
             
             if (role === 'Admin') {
                 document.getElementById('export-button').classList.remove('hidden');
